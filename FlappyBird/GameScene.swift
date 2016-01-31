@@ -12,7 +12,31 @@ class GameScene: SKScene {
     
     var bird = SKSpriteNode()
     
+    var bg = SKSpriteNode()
+    
     override func didMoveToView(view: SKView) {
+        
+        let bgTexture = SKTexture(imageNamed: "bg.png")
+
+        let movebg = SKAction.moveByX(-bgTexture.size().width, y: 0, duration: 9)
+        let replacebg = SKAction.moveByX(bgTexture.size().width, y: 0, duration: 0)
+        let movebgForever = SKAction.repeatActionForever(SKAction.sequence([movebg, replacebg]))
+        
+        
+        for var i: CGFloat = 0; i<3; i++ {
+            
+            bg = SKSpriteNode(texture: bgTexture)
+            
+            bg.position = CGPoint(x: bgTexture.size().width/2 + bgTexture.size().width * i, y: CGRectGetMidY(self.frame))
+            
+            bg.size.height = self.frame.height
+            
+            bg.runAction(movebgForever)
+            
+            self.addChild(bg)
+        
+        }
+
         
         let birdTexture = SKTexture(imageNamed: "flappy1.png")
         let birdTexture2 = SKTexture(imageNamed: "flappy2.png")
