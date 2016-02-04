@@ -8,7 +8,7 @@
 
 import SpriteKit
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var bird = SKSpriteNode()
     
@@ -18,7 +18,18 @@ class GameScene: SKScene {
     
     var pipe2 = SKSpriteNode()
     
+    enum ColliderType: UInt32 {
+    
+        case Bird = 1
+        case Object = 2
+        
+    }
+    
+    var gameOver = false
+    
     override func didMoveToView(view: SKView) {
+        
+        self.physicsWorld.contactDelegate = self
         
         let bgTexture = SKTexture(imageNamed: "bg.png")
 
@@ -54,15 +65,20 @@ class GameScene: SKScene {
         let makeBirdFlap = SKAction.repeatActionForever(animation)
         
         bird = SKSpriteNode(texture: birdTexture)
-        
-        bird.physicsBody = SKPhysicsBody(circleOfRadius: birdTexture.size().height/2)
-        bird.physicsBody!.dynamic = true  // applies gravity
-        
-        
+    
         
         bird.position = CGPoint(x: CGRectGetMidX(self.frame), y: CGRectGetMidY(self.frame))
         
         bird.runAction(makeBirdFlap)
+        
+        bird.physicsBody = SKPhysicsBody(circleOfRadius: birdTexture.size().height/2)
+        bird.physicsBody!.dynamic = true  // applies gravity
+        
+        bird.physicsBody!.categoryBitMask = ColliderType.Bird.rawValue
+        bird.physicsBody!.contactTestBitMask = ColliderType.Object.rawValue
+        bird.physicsBody!.collisionBitMask = ColliderType.Object.rawValue
+        
+        
         
         bird.zPosition = 3
         
@@ -73,6 +89,10 @@ class GameScene: SKScene {
         ground.position = CGPointMake(0, 0)
         ground.physicsBody = SKPhysicsBody(rectangleOfSize: CGSizeMake(self.frame.size.width, 1))
         ground.physicsBody!.dynamic = false
+        
+        ground.physicsBody!.categoryBitMask = ColliderType.Object.rawValue
+        ground.physicsBody!.contactTestBitMask = ColliderType.Object.rawValue
+        ground.physicsBody!.collisionBitMask = ColliderType.Object.rawValue
         
         self.addChild(ground)
         
@@ -102,12 +122,28 @@ class GameScene: SKScene {
         pipe1.position = CGPoint(x: CGRectGetMidX(self.frame) + self.frame.size.width, y: CGRectGetMidY(self.frame) + pipeTexture.size().height/2 + gapHeight / 2 + pipeOffset)
         pipe1.runAction(moveAndRemovePipes)
         
+        pipe1.physicsBody = SKPhysicsBody(rectangleOfSize: pipeTexture.size())
+        
+        pipe1.physicsBody!.categoryBitMask = ColliderType.Object.rawValue
+        pipe1.physicsBody!.contactTestBitMask = ColliderType.Object.rawValue
+        pipe1.physicsBody!.collisionBitMask = ColliderType.Object.rawValue
+        pipe1.physicsBody!.dynamic = false
+        
+        
         self.addChild(pipe1)
         
         var pipe2Texture = SKTexture(imageNamed: "pipe2.png")
         var pipe2 = SKSpriteNode(texture: pipe2Texture)
         pipe2.position = CGPoint(x: CGRectGetMidX(self.frame) + self.frame.size.width, y: CGRectGetMidY(self.frame) - pipe2Texture.size().height/2 - gapHeight / 2 + pipeOffset)
         pipe2.runAction(moveAndRemovePipes)
+        
+        
+        pipe2.physicsBody = SKPhysicsBody(rectangleOfSize: pipe2Texture.size())
+        pipe2.physicsBody!.dynamic = false
+        
+        pipe2.physicsBody!.categoryBitMask = ColliderType.Object.rawValue
+        pipe2.physicsBody!.contactTestBitMask = ColliderType.Object.rawValue
+        pipe2.physicsBody!.collisionBitMask = ColliderType.Object.rawValue
         
         
         
@@ -118,12 +154,26 @@ class GameScene: SKScene {
     
     }
     
+    func didBeginContact(contact: SKPhysicsContact) {
+        
+        print("we have contact")
+        
+        gameOver = true
+        
+        self.speed = 0
+    
+    }
+    
     
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
        
-        bird.physicsBody!.velocity = CGVectorMake(0, 0)
-        bird.physicsBody!.applyImpulse(CGVectorMake(0, 49))
+        if gameOver == false {
+        
+            bird.physicsBody!.velocity = CGVectorMake(0, 0)
+            bird.physicsBody!.applyImpulse(CGVectorMake(0, 49))
+        
+        }
         
         
     }
